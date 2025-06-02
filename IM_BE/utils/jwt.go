@@ -10,7 +10,7 @@ import (
 var jwtKey []byte
 
 type Claims struct {
-	UserID int `json:"user_id"`
+	UserID uint64 `json:"user_id"`
 	jwt.RegisteredClaims
 }
 
@@ -23,7 +23,7 @@ func InitJWTKey() {
 }
 
 // GenerateJWT 生成 Token
-func GenerateJWT(userID int) (string, error) {
+func GenerateJWT(userID uint64) (string, error) {
 	expiration := viper.GetInt("token.expiration")
 
 	claims := Claims{

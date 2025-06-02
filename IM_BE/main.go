@@ -1,6 +1,9 @@
 package main
 
 import (
+	"IM_BE/db/mysql"
+	"IM_BE/db/redis"
+	"IM_BE/manager"
 	"IM_BE/router"
 	"IM_BE/utils"
 	"github.com/gin-gonic/gin"
@@ -13,7 +16,14 @@ func main() {
 
 	utils.InitViper()
 
+	mysql.Init()
+	defer mysql.Close()
+
+	redis.Init()
+
 	utils.InitJWTKey()
+
+	_ = manager.GetManager()
 
 	r := gin.Default()
 

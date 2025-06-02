@@ -16,7 +16,7 @@ func JWTAuthMiddleware() gin.HandlerFunc {
 		authHeader := c.GetHeader("Authorization")
 		if authHeader == "" || !strings.HasPrefix(authHeader, "Bearer ") {
 			Result.Error(c, "Authorization header missing or invalid")
-			// c.Abort() 只是可以使得 index 超出范围，好需要配合 return 退出当前函数
+			// c.Abort() 只是可以使得 index 超出范围，还需要配合 return 退出当前函数
 			c.Abort()
 			return
 		}
@@ -25,7 +25,7 @@ func JWTAuthMiddleware() gin.HandlerFunc {
 
 		claims, err := utils.ParseJWT(token)
 		if err != nil {
-			Result.Error(c, "Invalid or expired token")
+			Result.Error(c, "会话失效")
 			c.Abort()
 			return
 		}
@@ -34,13 +34,7 @@ func JWTAuthMiddleware() gin.HandlerFunc {
 
 		tokenKey := fmt.Sprintf("user_token_%d", id)
 		tokenTmp, err := redis.Get().Get(context.Background(), tokenKey).Result()
-		if err != nil {
-			Result.Error(c, "会话失效")
-			c.Abort()
-			return
-		}
-
-		if tokenTmp != token {
+		if err != nil || tokenKey != tokenTmp {
 			Result.Error(c, "会话失效")
 			c.Abort()
 			return
@@ -49,7 +43,6 @@ func JWTAuthMiddleware() gin.HandlerFunc {
 		// 把解析到的用户 ID 存入 context 中
 		c.Set("user_id", id)
 
-		// 需要 c.Next()，否则不会自动 index++
-		c.Next()
+		// c.Next() // 多此一举
 	}
 }

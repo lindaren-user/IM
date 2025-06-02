@@ -36,7 +36,9 @@ func (u *UserService) Login(username string, password string) (string, error) {
 	expiration := viper.GetInt("token.expiration")
 
 	// 设置时间，自动清除 token，不占内存
-	u.redisCli.Set(context.Background(), tokenKey, token, time.Duration(expiration))
+	u.redisCli.Set(context.Background(), tokenKey, token, time.Duration(expiration)*time.Hour)
+
+	fmt.Println(tokenKey, token)
 
 	return token, nil
 }

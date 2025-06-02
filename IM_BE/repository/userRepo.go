@@ -7,7 +7,7 @@ import (
 )
 
 type UserRepo interface {
-	AuthUser(username string, password string) (int, error)
+	AuthUser(username string, password string) (uint64, error)
 }
 
 func NewUserRepo(db *sql.DB) UserRepo {
@@ -18,10 +18,10 @@ type userRepoImpl struct {
 	db *sql.DB
 }
 
-func (u *userRepoImpl) AuthUser(username string, password string) (int, error) {
-	var id int
+func (u *userRepoImpl) AuthUser(username string, password string) (uint64, error) {
+	var id uint64
 
-	query := `select id from user where username = ? and password = ?`
+	query := `select id from users where username = ? and password = ?`
 	if err := u.db.QueryRow(query, username, password).Scan(&id); err != nil {
 		utils.GetLogger().Error("查询失败", zap.Error(err))
 		return 0, err
