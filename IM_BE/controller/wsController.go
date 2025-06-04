@@ -3,7 +3,6 @@ package controller
 import (
 	"IM_BE/Result"
 	"IM_BE/db/redis"
-	manager2 "IM_BE/manager"
 	"IM_BE/service"
 	"IM_BE/utils"
 	"IM_BE/ws"
@@ -15,7 +14,9 @@ import (
 	"net/http"
 )
 
-// TODO:使用redis实现分布式
+// TODO
+// 如果不考虑持久化信息，那么实际上只需要做到”转发消息“
+// 但是就是要做到持久化，那么需要对消息进行解析
 
 type WsController struct {
 	service *service.WsService
@@ -25,17 +26,8 @@ func NewWsController(service *service.WsService) *WsController {
 	return &WsController{service: service}
 }
 
-var upgrader = websocket.Upgrader{
-	// ReadBufferSize:  1024,
-	// WriteBufferSize: 1024,
-	// 用于检查请求的来源是否允许建立 WebSocket 连接。这里简单返回 true 表示允许所有来源的请求
-	CheckOrigin: func(r *http.Request) bool {
-		return true
-	},
-}
-
-func (w *WsController) Work(c *gin.Context) {
-	// TODO:优化代码，怎么写才不冗余？
+func (w *WsController) Run(c *gin.Context) {
+	// TODO:优化校验token代码，怎么写才不冗余？
 	token := c.Query("token")
 
 	claims, err := utils.ParseJWT(token)
@@ -48,11 +40,20 @@ func (w *WsController) Work(c *gin.Context) {
 	id := claims.UserID
 
 	tokenKey := fmt.Sprintf("user_token_%d", id)
-	tokenTmp, err := redis.Get().Get(context.Background(), tokenKey).Result()
-	if err != nil || tokenTmp != token {
+	redisToken, err := redis.Get().Get(context.Background(), tokenKey).Result()
+	if err != nil || redisToken != token {
 		Result.Error(c, "会话失效")
 		c.Abort()
 		return
+	}
+
+	upgrader := websocket.Upgrader{
+		// ReadBufferSize:  1024,
+		// WriteBufferSize: 1024,
+		// 用于检查请求的来源是否允许建立 WebSocket 连接。这里简单返回 true 表示允许所有来源的请求
+		CheckOrigin: func(r *http.Request) bool {
+			return true
+		},
 	}
 
 	// 升级，实际上 http.ResponseWriter 被 WebSocket“劫持”了，也就是：
@@ -77,12 +78,8 @@ func (w *WsController) Work(c *gin.Context) {
 	//}
 
 	client := ws.NewClient(id, conn)
-	manager := manager2.GetManager()
 
-	manager.Register <- client
-
-	go client.WritePump()
-	go client.ReadPump()
+	w.service.AddClient(client)
 
 	//// TODO:放在后面的妙处,但是这里执行了Close(),导致关闭连接，致使读取消息失败
 	// 怎么处理？？？？

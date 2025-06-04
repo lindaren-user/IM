@@ -2,6 +2,7 @@ package repository
 
 import "database/sql"
 
+// 名字以业务划分
 type WsRepo interface {
 }
 

@@ -7,6 +7,7 @@ import (
 	"github.com/spf13/viper"
 )
 
+// 单例模式
 var db *sql.DB
 
 func Init() {

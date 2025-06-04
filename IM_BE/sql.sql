@@ -11,6 +11,7 @@ CREATE TABLE `users` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='用户表';
 
 # TODO: 枚举类型， innodb索引, INDEX(),保留关键字
+# seq:即使 created_at 时间精度到毫秒，也不能保证顺序（特别是在并发写入时）。 支持断点续传/拉取历史消息
 CREATE TABLE `private_messages` (
     `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY COMMENT '消息ID，自增主键',
     `sender_id` BIGINT UNSIGNED NOT NULL COMMENT '发送者用户ID',

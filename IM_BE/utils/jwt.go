@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"go.uber.org/zap"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -43,6 +44,10 @@ func ParseJWT(tokenString string) (*Claims, error) {
 	token, err := jwt.ParseWithClaims(tokenString, &Claims{}, func(t *jwt.Token) (interface{}, error) {
 		return jwtKey, nil
 	})
+	if err != nil {
+		GetLogger().Error("解析 token 失败", zap.Error(err))
+		return nil, err
+	}
 
 	if claims, ok := token.Claims.(*Claims); ok && token.Valid {
 		return claims, nil

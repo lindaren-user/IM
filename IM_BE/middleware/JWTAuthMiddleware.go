@@ -6,6 +6,7 @@ import (
 	"IM_BE/utils"
 	"context"
 	"fmt"
+	"go.uber.org/zap"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -33,8 +34,9 @@ func JWTAuthMiddleware() gin.HandlerFunc {
 		id := claims.UserID
 
 		tokenKey := fmt.Sprintf("user_token_%d", id)
-		tokenTmp, err := redis.Get().Get(context.Background(), tokenKey).Result()
-		if err != nil || tokenKey != tokenTmp {
+		redisToken, err := redis.Get().Get(context.Background(), tokenKey).Result()
+		if err != nil || token != redisToken {
+			utils.GetLogger().Error("会话失效", zap.Error(err))
 			Result.Error(c, "会话失效")
 			c.Abort()
 			return

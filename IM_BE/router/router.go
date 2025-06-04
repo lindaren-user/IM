@@ -7,6 +7,7 @@ import (
 	"IM_BE/middleware"
 	"IM_BE/repository"
 	"IM_BE/service"
+	"IM_BE/ws"
 	"github.com/gin-gonic/gin"
 )
 
@@ -19,13 +20,17 @@ func Init(router *gin.Engine) {
 	wsService := service.NewWsService(wsRepo)
 	wsController := controller.NewWsController(wsService)
 
-	router.POST("/", userController.Login)
+	messageRepo := repository.NewMessageRepo(mysql.Get())
+	messageService := service.NewMessageService(messageRepo)
+	ws.InitWsManager(messageService)
+
+	router.POST("/user", userController.Login)
+	router.GET("/ws", wsController.Run)
 
 	// TODO:中间件是否一定要 c.Next()
-	authRouter := router.Group("/", middleware.JWTAuthMiddleware())
+	authRouter := router.Group("/user", middleware.JWTAuthMiddleware())
 	{
+		authRouter.GET("/search", userController.Search)
 		authRouter.GET("/logout", userController.Logout)
 	}
-
-	router.GET("/ws", wsController.Work)
 }

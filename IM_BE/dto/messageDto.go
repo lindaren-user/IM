@@ -1,33 +1,42 @@
 package dto
 
 import (
+	"IM_BE/model"
 	"encoding/json"
 	"time"
-)
-
-type MessageType string
-
-const (
-	TextMessage  MessageType = "text"
-	ImageMessage MessageType = "image"
-	FileMessage  MessageType = "file"
-	SystemNotice MessageType = "system"
-	AudioMessage MessageType = "audio"
 )
 
 type ChatType string
 
 const (
 	PrivateChat ChatType = "private"
-	GroupChar   ChatType = "group"
+	GroupChat   ChatType = "group"
 )
 
-// TODO:怎么避免使用id区分不同的对象
-type MessageDto struct {
-	SenderId    uint64          `json:"sender_id,omitempty"`
-	ToId        uint64          `json:"to_id,omitempty"`
-	ChatType    ChatType        `json:"chat_type"`
-	ContentType MessageType     `json:"content_type"` // TODO:不必担心前端是stringer导致json解析失败
-	Content     json.RawMessage `json:"content"`
-	CreatedAt   time.Time       `json:"created_at"`
+// TODO: copier无法复制匿名字段
+type messageBasic struct {
+	SenderId    uint64            `json:"sender_id,omitempty"`
+	ToId        uint64            `json:"to_id,omitempty"`
+	ChatType    ChatType          `json:"chat_type"`
+	ContentType model.MessageType `json:"content_type"` // TODO:不必担心前端是string而导致json解析失败
+	CreatedAt   time.Time         `json:"created_at"`
+}
+
+type MessageReqDto struct {
+	SenderId    uint64            `json:"sender_id,omitempty"`
+	ToId        uint64            `json:"to_id,omitempty"`
+	ChatType    ChatType          `json:"chat_type"`
+	ContentType model.MessageType `json:"content_type"` // TODO:不必担心前端是string而导致json解析失败
+	CreatedAt   time.Time         `json:"created_at"`
+	Content     json.RawMessage   `json:"content"`
+}
+
+type MessageRespDto struct {
+	Id          uint64            `json:"id"`
+	SenderId    uint64            `json:"sender_id,omitempty"`
+	ToId        uint64            `json:"to_id,omitempty"`
+	ChatType    ChatType          `json:"chat_type"`
+	ContentType model.MessageType `json:"content_type"` // TODO:不必担心前端是string而导致json解析失败
+	CreatedAt   time.Time         `json:"created_at"`
+	Content     string            `json:"content"`
 }

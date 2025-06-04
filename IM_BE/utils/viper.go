@@ -10,7 +10,7 @@ import (
 
 func InitViper() {
 	if err := gotenv.Load(); err != nil {
-		log.Println("Error loading .env file")
+		log.Println("加载 .env 文件失败")
 	}
 	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 

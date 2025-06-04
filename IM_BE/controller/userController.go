@@ -7,6 +7,7 @@ import (
 	"IM_BE/utils"
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
+	"time"
 )
 
 type UserController struct {
@@ -27,7 +28,8 @@ func (u *UserController) Login(c *gin.Context) {
 		return
 	}
 
-	token, err := u.service.Login(user.Username, user.Password)
+	ctx := c.Request.Context()
+	token, err := u.service.Login(ctx, user.Username, user.Password)
 	if err != nil {
 		Result.Error(c, "登录失败")
 		return
@@ -51,10 +53,42 @@ func (u *UserController) Logout(c *gin.Context) {
 		return
 	}
 
-	if err := u.service.Logout(id); err != nil {
+	ctx := c.Request.Context()
+	if err := u.service.Logout(ctx, id); err != nil {
 		Result.Error(c, "登出失败")
 		return
 	}
 
 	Result.Success(c, nil)
+}
+
+// TODO:可以实现一个取消搜索的功能
+func (u *UserController) Search(c *gin.Context) {
+	time.Sleep(3 * time.Second)
+
+	getType := c.Query("type")
+	keyword := c.Query("keyword")
+
+	if getType != "0" && getType != "1" {
+		Result.Error(c, "参数错误")
+		return
+	}
+
+	if len(keyword) == 0 {
+		Result.Error(c, "参数缺少")
+		return
+	}
+
+	// TODO:前端取消请求，但是没有无法中断（手动ctrl+c可以）
+	ctx := c.Request.Context()
+
+	users, err := u.service.Search(ctx, getType, keyword)
+	if err != nil {
+		Result.Error(c, "搜索失败")
+		return
+	}
+
+	time.Sleep(time.Duration(5) * time.Second)
+
+	Result.Success(c, users)
 }
