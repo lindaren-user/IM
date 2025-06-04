@@ -1,7 +1,10 @@
 <template>
   <el-container class="main">
     <el-aside width="30%" style="border-right: 1px solid #ccc">
-      <div class="asideHeader">聊天列表</div>
+      <div class="asideHeader">
+        <text>聊天列表</text>
+        <img src="@/assets/imgs/add.svg" class="add-icon" @click="openAddUser = true" />
+      </div>
       <div class="aside">
         <div
           class="chat-item"
@@ -35,19 +38,30 @@
       </el-main>
     </el-container>
   </el-container>
+
+  <AddUserDial :dialogVisible="openAddUser" @update:dialogVisible="openAddUser = false" />
 </template>
 
 <script setup>
-import { getGroupsInfoMsg, getTextMsg } from '@/utils/messageHandler';
 import { ref, onMounted } from 'vue';
+import AddUserDial from './components/addUserDial.vue';
 
+// 聊天列表
 const chatList = ref([]);
+
+// 选择的消息
 const selectedChat = ref(null);
 
+// 消息内容
 const content = ref('');
 
+// 消息列表
 const messageList = ref([]);
 
+// 是否打开添加好友弹窗
+const openAddUser = ref(false);
+
+// 处理选择的聊天
 const handSelectedChat = (index) => {
   selectedChat.value = chatList.value[index];
 };
@@ -57,8 +71,7 @@ let ws = null;
 onMounted(() => startWS());
 
 const startWS = () => {
-  let token = localStorage.getItem('token') || '';
-  token = token.trim(); // 去除空白
+  const token = localStorage.getItem('token');
   ws = new WebSocket(`ws://localhost:8080/ws?token=${token}`);
 
   ws.onopen = () => {
@@ -68,38 +81,17 @@ const startWS = () => {
   ws.onmessage = (event) => {
     try {
       const message = JSON.parse(event.data);
+      messageList.push(message);
       console.log(message);
-
-      switch (message.type) {
-        case 'groupsInfo':
-          chatList.value = getGroupsInfoMsg(message);
-          break;
-
-        case 'text':
-          messageList.value.push(getTextMsg(message));
-          break;
-
-        case 'image':
-          break;
-
-        case 'audio':
-          break;
-
-        case 'video':
-          break;
-
-        default:
-          ElMessage.error('消息类型出错');
-          break;
-      }
     } catch (err) {
       ElMessage.error('消息接收出错');
       console.log(err);
     }
   };
 
-  ws.onerror = () => {
+  ws.onerror = (err) => {
     ElMessage.error('连接失败');
+    console.log(err);
   };
 
   ws.onclose = () => {
@@ -111,13 +103,11 @@ const sendMessage = () => {
   if (ws && ws.readyState === WebSocket.OPEN) {
     ws.send(
       JSON.stringify({
-        type: 'text',
-        target: selectedChat.value.id,
-        content: {
-          text: content.value,
-        },
-        toGroup: true,
-        // createdAt: Date.now(),
+        to_id: 1,
+        chat_type: 'private',
+        content_type: 'text',
+        content: content.value,
+        create_at: Date.now(),
       }),
     );
     content.value = '';
@@ -128,84 +118,95 @@ const sendMessage = () => {
 };
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
 .main {
   border: 1px solid #ccc;
   width: 70vw;
   height: 80vh;
   margin: 5vh auto;
   display: flex;
-}
 
-.asideHeader {
-  text-align: center;
-  height: 5%;
-  border-bottom: 1px solid #ccc;
-}
+  .asideHeader {
+    text-align: center;
+    height: 5%;
+    border-bottom: 1px solid #ccc;
+    display: flex;
+    align-items: center;
 
-.aside {
-  height: 94%;
-  overflow-y: auto;
-}
+    text {
+      flex: 1;
+    }
 
-.header {
-  border-bottom: 1px solid #ccc;
-}
+    .add-icon {
+      width: 2rem;
+      cursor: pointer;
+    }
+  }
 
-.chat-item {
-  width: 100%;
-  padding: 10px;
-  box-sizing: border-box;
-  border-bottom: 1px solid #ccc;
-  cursor: pointer;
-  display: flex;
-  justify-content: space-between;
-}
+  .aside {
+    height: 94%;
+    overflow-y: auto;
+  }
 
-.chat-view {
-  height: 80%;
-  border-bottom: 1px solid #ccc;
-  margin-bottom: 10px;
-  overflow-y: auto;
-}
+  .chat-item {
+    width: 100%;
+    padding: 10px;
+    box-sizing: border-box;
+    border-bottom: 1px solid #ccc;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+  }
 
-.chat-input {
-  display: flex;
-  justify-content: center;
-  gap: 10px;
-}
+  .header {
+    border-bottom: 1px solid #ccc;
+  }
 
-.chat-msg {
-  display: flex;
-  align-items: flex-start;
-  margin: 10px;
-  padding: 10px;
-  border-radius: 10px;
-}
+  .chat-view {
+    height: 80%;
+    border-bottom: 1px solid #ccc;
+    margin-bottom: 10px;
+    overflow-y: auto;
 
-.self-msg {
-  justify-content: right;
-  background-color: #e1f5fe;
-  flex-direction: row-reverse;
-}
+    .chat-msg {
+      display: flex;
+      align-items: flex-start;
+      margin: 10px;
+      padding: 10px;
+      border-radius: 10px;
 
-.other-msg {
-  justify-content: flex-start;
-  background-color: #f5f5f5;
-}
+      &.self-msg {
+        justify-content: right;
+        background-color: #e1f5fe;
+        flex-direction: row-reverse;
+      }
 
-.chat-avatar {
-  width: 40px;
-  height: 40px;
-  border: 1px solid #ccc;
-  border-radius: 50%;
-}
+      &.other-msg {
+        justify-content: flex-start;
+        background-color: #f5f5f5;
+      }
 
-.chat-message {
-  max-width: 70%;
-  padding: 10px;
-  border-radius: 10px;
-  word-wrap: break-word;
+      .chat-avatar {
+        width: 40px;
+        height: 40px;
+        border: 1px solid #ccc;
+        border-radius: 50%;
+      }
+
+      .chat-message {
+        max-width: 70%;
+        padding: 10px;
+        border-radius: 10px;
+        word-wrap: break-word;
+      }
+    }
+  }
+
+  .chat-input {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+  }
 }
 
 /* 响应式设计 */
@@ -213,15 +214,15 @@ const sendMessage = () => {
   .main {
     flex-direction: column;
     width: 90vw;
-  }
 
-  .aside {
-    width: 100%;
-    height: auto;
-  }
+    .aside {
+      width: 100%;
+      height: auto;
+    }
 
-  .chat-view {
-    height: 60vh;
+    .chat-view {
+      height: 60vh;
+    }
   }
 }
 </style>

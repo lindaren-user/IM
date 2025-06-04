@@ -38,7 +38,7 @@ const handleLogin = () => {
   user_service
     .login(form.value)
     .then((res) => {
-      ElMessage.success(res.data.msg);
+      ElMessage.success(res.data.message);
       localStorage.setItem('token', res.data.data);
       router.push('/room');
     })
@@ -48,44 +48,37 @@ const handleLogin = () => {
 };
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 .login-container {
   display: flex;
   justify-content: center;
-}
+  margin-top: 15vh;
 
-.header {
-  text-align: center;
-  padding: 10px;
-}
+  .login-form {
+    width: 20%;
+    padding: 24px;
+    border-radius: 8px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
 
-.login-form {
-  width: 20%;
-  padding: 24px;
-  border-radius: 8px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
-  margin-top: 10vh;
-}
+    .header {
+      text-align: center;
+      padding: 10px;
+    }
 
-.login-button {
-  width: 100%;
-  margin-top: 16px;
-  padding: 12px;
-  background-color: #409eff;
-  color: white;
-  border-radius: 4px;
-  transition: background-color 0.3s;
-}
+    .login-button {
+      width: 100%;
+      margin-top: 16px;
+      padding: 12px;
+      background-color: #409eff;
+      color: white;
+      border-radius: 4px;
+      transition: background-color 0.3s;
+    }
 
-.login-button:hover {
-  background-color: #2b6bd3;
-}
-
-.error-message {
-  color: #f56c6c;
-  margin-top: 12px;
-  text-align: center;
-  font-size: 0.9em;
+    .login-button:hover {
+      background-color: #2b6bd3;
+    }
+  }
 }
 
 .el-form-item {
