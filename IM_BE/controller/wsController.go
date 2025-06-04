@@ -32,18 +32,16 @@ func (w *WsController) Run(c *gin.Context) {
 
 	claims, err := utils.ParseJWT(token)
 	if err != nil {
-		Result.Error(c, "Invalid or expired token")
-		c.Abort()
+		Result.Error(c, "会话失效") // TODO:会发送？？？
 		return
 	}
 
 	id := claims.UserID
 
-	tokenKey := fmt.Sprintf("user_token_%d", id)
+	tokenKey := fmt.Sprintf("user_%d_token", id)
 	redisToken, err := redis.Get().Get(context.Background(), tokenKey).Result()
 	if err != nil || redisToken != token {
 		Result.Error(c, "会话失效")
-		c.Abort()
 		return
 	}
 

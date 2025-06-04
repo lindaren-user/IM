@@ -46,7 +46,7 @@ func (u *UserController) Logout(c *gin.Context) {
 		return
 	}
 
-	id, ok := userId.(int)
+	id, ok := userId.(uint64)
 	if !ok {
 		utils.GetLogger().Error("断言失败")
 		Result.Error(c, "登出失败")

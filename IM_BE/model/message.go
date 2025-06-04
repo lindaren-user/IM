@@ -15,6 +15,16 @@ const (
 	AudioMessage  MessageType = "audio"
 )
 
+// copier只能实现非匿名字段的复制
+type messageBasic struct {
+	Id          uint64
+	SenderId    uint64
+	ContentType MessageType
+	Content     string
+	CreatedAt   time.Time
+	Seq         uint64
+}
+
 type PrivateMessage struct {
 	Id          uint64
 	SenderId    uint64
@@ -22,6 +32,7 @@ type PrivateMessage struct {
 	ContentType MessageType
 	Content     string
 	CreatedAt   time.Time
+	Seq         uint64 `json:"seq"`
 }
 
 type GroupMessage struct {
@@ -31,4 +42,5 @@ type GroupMessage struct {
 	ContentType MessageType
 	Content     string
 	CreatedAt   time.Time
+	Seq         uint64 `json:"seq"`
 }

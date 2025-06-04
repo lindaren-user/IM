@@ -21,6 +21,8 @@ redis:
   poolSize: 30
   minIdleConn: 30
 
+# 这种密钥，github 不会允许这次合并，可以把密钥存在 .env 文件
+
 alioss:
   endpoint: oss-cn-guangzhou.aliyuncs.com
   region: cn-guangzhou

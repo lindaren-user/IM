@@ -20,6 +20,7 @@ type messageBasic struct {
 	ChatType    ChatType          `json:"chat_type"`
 	ContentType model.MessageType `json:"content_type"` // TODO:不必担心前端是string而导致json解析失败
 	CreatedAt   time.Time         `json:"created_at"`
+	Seq         uint64            `json:"seq"`
 }
 
 type MessageReqDto struct {
@@ -29,6 +30,7 @@ type MessageReqDto struct {
 	ContentType model.MessageType `json:"content_type"` // TODO:不必担心前端是string而导致json解析失败
 	CreatedAt   time.Time         `json:"created_at"`
 	Content     json.RawMessage   `json:"content"`
+	Seq         uint64            `json:"seq"`
 }
 
 type MessageRespDto struct {
@@ -39,4 +41,5 @@ type MessageRespDto struct {
 	ContentType model.MessageType `json:"content_type"` // TODO:不必担心前端是string而导致json解析失败
 	CreatedAt   time.Time         `json:"created_at"`
 	Content     string            `json:"content"`
+	Seq         uint64            `json:"seq"`
 }

@@ -4,6 +4,7 @@ import (
 	"IM_BE/dto"
 	"IM_BE/iface"
 	"IM_BE/utils"
+	"context"
 	"go.uber.org/zap"
 )
 
@@ -72,7 +73,7 @@ func (w *WsManager) run() {
 
 		case message := <-w.MessageHub:
 			// 持久化到数据库
-			if err := w.service.SaveMessage(message); err != nil {
+			if err := w.service.SaveMessage(context.Background(), message); err != nil {
 				continue
 			}
 

@@ -5,20 +5,22 @@ import (
 	"IM_BE/model"
 	"IM_BE/repository"
 	"IM_BE/utils"
+	"context"
 	"errors"
 	"github.com/jinzhu/copier"
 	"go.uber.org/zap"
 )
 
 type MessageService struct {
-	repo repository.MessageRepo
+	repo      repository.MessageRepo
+	redisRepo repository.RedisRepo
 }
 
-func NewMessageService(repo repository.MessageRepo) *MessageService {
-	return &MessageService{repo: repo}
+func NewMessageService(repo repository.MessageRepo, redisRepo repository.RedisRepo) *MessageService {
+	return &MessageService{repo: repo, redisRepo: redisRepo}
 }
 
-func (m *MessageService) SaveMessage(messageDto *dto.MessageRespDto) error {
+func (m *MessageService) SaveMessage(ctx context.Context, messageDto *dto.MessageRespDto) error {
 	switch messageDto.ChatType {
 	case dto.PrivateChat:
 		message := &model.PrivateMessage{}
@@ -27,6 +29,14 @@ func (m *MessageService) SaveMessage(messageDto *dto.MessageRespDto) error {
 			return err
 		}
 		message.ReceiverId = messageDto.ToId
+
+		seq, err := m.redisRepo.GetNextPrivateMessageSeq(ctx, message.SenderId, message.ReceiverId)
+		if err != nil {
+			utils.GetLogger().Error("redis 获取 private message seq 失败", zap.Error(err))
+			return err
+		}
+
+		message.Seq = seq
 
 		return m.repo.SavePrivateMessage(message)
 
@@ -38,6 +48,14 @@ func (m *MessageService) SaveMessage(messageDto *dto.MessageRespDto) error {
 		}
 		message.GroupId = messageDto.ToId
 
+		seq, err := m.redisRepo.GetNextGroupMessageSeq(ctx, message.GroupId)
+		if err != nil {
+			utils.GetLogger().Error("redis 获取 group message seq 失败", zap.Error(err))
+			return err
+		}
+
+		message.Seq = seq
+
 		return m.repo.SaveGroupMessage(message)
 
 	default:
@@ -46,7 +64,7 @@ func (m *MessageService) SaveMessage(messageDto *dto.MessageRespDto) error {
 	}
 }
 
-func (m *MessageService) GetHistoryMessages(senderId uint64, toId uint64, chatType dto.ChatType) ([]*dto.MessageRespDto, error) {
+func (m *MessageService) GetHistoryMessages(ctx context.Context, senderId uint64, toId uint64, chatType dto.ChatType) ([]*dto.MessageRespDto, error) {
 	switch chatType {
 	case dto.PrivateChat:
 		messages, err := m.repo.GetHistoryPrivateMessages(senderId, toId)

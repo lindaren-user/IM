@@ -5,20 +5,17 @@ import (
 	"IM_BE/repository"
 	"IM_BE/utils"
 	"context"
-	"fmt"
-	"github.com/redis/go-redis/v9"
 	"github.com/spf13/viper"
 	"go.uber.org/zap"
-	"time"
 )
 
 type UserService struct {
-	repo     repository.UserRepo
-	redisCli *redis.Client
+	repo      repository.UserRepo
+	redisRepo repository.RedisRepo
 }
 
-func NewUserService(repo repository.UserRepo, redisCli *redis.Client) *UserService {
-	return &UserService{repo: repo, redisCli: redisCli}
+func NewUserService(repo repository.UserRepo, redisRepo repository.RedisRepo) *UserService {
+	return &UserService{repo: repo, redisRepo: redisRepo}
 }
 
 func (u *UserService) Login(ctx context.Context, username string, password string) (string, error) {
@@ -33,21 +30,21 @@ func (u *UserService) Login(ctx context.Context, username string, password strin
 		return "", nil
 	}
 
-	tokenKey := fmt.Sprintf("user_token_%d", id)
 	expiration := viper.GetInt("token.expiration")
 
-	// 设置时间，自动清除 token，不占内存
-	u.redisCli.Set(ctx, tokenKey, token, time.Duration(expiration)*time.Hour)
-
-	fmt.Println(tokenKey, token)
+	if err := u.redisRepo.SetUserToken(ctx, id, token, expiration); err != nil {
+		utils.GetLogger().Error("redis 获取 token 失败", zap.Error(err))
+		return "", err
+	}
 
 	return token, nil
 }
 
-func (u *UserService) Logout(ctx context.Context, id int) error {
-	tokenKey := fmt.Sprintf("user_token_%d", id)
-
-	u.redisCli.Del(ctx, tokenKey)
+func (u *UserService) Logout(ctx context.Context, id uint64) error {
+	if err := u.redisRepo.DelUserToken(ctx, id); err != nil {
+		utils.GetLogger().Error("redis 删除 token 失败", zap.Error(err))
+		return err
+	}
 
 	return nil
 }

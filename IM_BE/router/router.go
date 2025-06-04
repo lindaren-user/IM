@@ -12,8 +12,10 @@ import (
 )
 
 func Init(router *gin.Engine) {
+	redisRepo := repository.NewRedisRepo(redis.Get())
+
 	userRepo := repository.NewUserRepo(mysql.Get())
-	userService := service.NewUserService(userRepo, redis.Get())
+	userService := service.NewUserService(userRepo, redisRepo)
 	userController := controller.NewUserController(userService)
 
 	wsRepo := repository.NewWsRepo(mysql.Get())
@@ -21,7 +23,7 @@ func Init(router *gin.Engine) {
 	wsController := controller.NewWsController(wsService)
 
 	messageRepo := repository.NewMessageRepo(mysql.Get())
-	messageService := service.NewMessageService(messageRepo)
+	messageService := service.NewMessageService(messageRepo, redisRepo)
 	ws.InitWsManager(messageService)
 
 	router.POST("/user", userController.Login)

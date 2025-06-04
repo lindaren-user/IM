@@ -79,9 +79,9 @@ func (m *messageRepoImpl) GetHistoryGroupMessages(groupId uint64) ([]*model.Grou
 }
 
 func (m *messageRepoImpl) SavePrivateMessage(message *model.PrivateMessage) error {
-	query := "insert into private_messages(sender_id, receiver_id, content_type, content) values(?, ?, ?, ?)"
+	query := "insert into private_messages(sender_id, receiver_id, content_type, content, seq) values(?, ?, ?, ?, ?)"
 
-	if _, err := m.db.Exec(query, message.SenderId, message.ReceiverId, message.ContentType, message.Content); err != nil {
+	if _, err := m.db.Exec(query, message.SenderId, message.ReceiverId, message.ContentType, message.Content, message.Seq); err != nil {
 		utils.GetLogger().Error("插入失败", zap.Error(err))
 		return err
 	}
@@ -90,9 +90,9 @@ func (m *messageRepoImpl) SavePrivateMessage(message *model.PrivateMessage) erro
 }
 
 func (m *messageRepoImpl) SaveGroupMessage(message *model.GroupMessage) error {
-	query := "insert into group_messages(sender_id, group_id, content_type, content) values(?, ?, ?, ?)"
+	query := "insert into group_messages(sender_id, group_id, content_type, content, seq) values(?, ?, ?, ?, ?)"
 
-	if _, err := m.db.Exec(query, message.SenderId, message.GroupId, message.ContentType, message.Content); err != nil {
+	if _, err := m.db.Exec(query, message.SenderId, message.GroupId, message.ContentType, message.Content, message.Seq); err != nil {
 		utils.GetLogger().Error("插入失败", zap.Error(err))
 		return err
 	}
