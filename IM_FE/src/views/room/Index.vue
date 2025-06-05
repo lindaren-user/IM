@@ -68,11 +68,21 @@ const handSelectedChat = (index) => {
 
 let ws = null;
 
+const parseCookies = () => {
+  const cookies = {};
+  document.cookie.split(';').forEach((cookie) => {
+    const [key, value] = cookie.trim().split('=');
+    cookies[key] = value;
+  });
+  return cookies;
+};
+
 onMounted(() => startWS());
 
 const startWS = () => {
-  const token = localStorage.getItem('token');
-  ws = new WebSocket(`ws://localhost:8080/ws?token=${token}`);
+  const cookieObj = parseCookies();
+
+  ws = new WebSocket(`ws://localhost:8080/ws?token=${cookieObj.im}`);
 
   ws.onopen = () => {
     ElMessage.success('连接成功');
@@ -81,7 +91,7 @@ const startWS = () => {
   ws.onmessage = (event) => {
     try {
       const message = JSON.parse(event.data);
-      messageList.push(message);
+      messageList.value.push(message);
       console.log(message);
     } catch (err) {
       ElMessage.error('消息接收出错');
