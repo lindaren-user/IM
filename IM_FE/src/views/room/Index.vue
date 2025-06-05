@@ -27,7 +27,7 @@
             :class="chatMsg.otherMsg ? 'other-msg' : 'self-msg'"
             class="chat-msg"
           >
-            <div class="chat-avatar">{{ chatMsg.id }}</div>
+            <div class="chat-avatar">{{ chatMsg?.id }}</div>
             <div class="chat-message">{{ chatMsg.content }}</div>
           </div>
         </div>

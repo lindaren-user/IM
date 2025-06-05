@@ -38,7 +38,6 @@
 </template>
 
 <script setup>
-import { getGroupsInfoMsg, getTextMsg } from '@/utils/messageHandler';
 import { ref, onMounted } from 'vue';
 
 const chatList = ref([]);
@@ -54,12 +53,23 @@ const handSelectedChat = (index) => {
 
 let ws = null;
 
-onMounted(() => startWS());
+const parseCookies = () => {
+  const cookies = {};
+  document.cookie.split(';').forEach((cookie) => {
+    const [key, value] = cookie.trim().split('=');
+    cookies[key] = value;
+  });
+  return cookies;
+};
+
+onMounted(() => {
+  startWS();
+});
 
 const startWS = () => {
-  let token = localStorage.getItem('token') || '';
-  token = token.trim(); // 去除空白
-  ws = new WebSocket(`ws://localhost:8080/ws?token=${token}`);
+  const cookieObj = parseCookies();
+
+  ws = new WebSocket(`ws://localhost:8080/ws?token=${cookieObj.im}`);
 
   ws.onopen = () => {
     ElMessage.success('连接成功');
@@ -69,29 +79,7 @@ const startWS = () => {
     try {
       const message = JSON.parse(event.data);
       console.log(message);
-
-      switch (message.type) {
-        case 'groupsInfo':
-          chatList.value = getGroupsInfoMsg(message);
-          break;
-
-        case 'text':
-          messageList.value.push(getTextMsg(message));
-          break;
-
-        case 'image':
-          break;
-
-        case 'audio':
-          break;
-
-        case 'video':
-          break;
-
-        default:
-          ElMessage.error('消息类型出错');
-          break;
-      }
+      messageList.value.push(message);
     } catch (err) {
       ElMessage.error('消息接收出错');
       console.log(err);
@@ -111,13 +99,11 @@ const sendMessage = () => {
   if (ws && ws.readyState === WebSocket.OPEN) {
     ws.send(
       JSON.stringify({
-        type: 'text',
-        target: selectedChat.value.id,
-        content: {
-          text: content.value,
-        },
-        toGroup: true,
-        // createdAt: Date.now(),
+        to_id: 1,
+        chat_type: 'private',
+        content_type: 'text',
+        content: content.value,
+        create_at: Date.now(),
       }),
     );
     content.value = '';
