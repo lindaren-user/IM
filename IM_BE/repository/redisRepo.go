@@ -7,6 +7,8 @@ import (
 	"time"
 )
 
+// TODO: redis 是单线程的，所有操作均有原子性，都是安全的
+
 type RedisRepo interface {
 	SetUserToken(ctx context.Context, userId uint64, token string, expiration int) error
 	GetUserToken(ctx context.Context, userId uint64) (string, error)
@@ -24,7 +26,7 @@ type redisRepoImpl struct {
 	rdb *redis.Client
 }
 
-// TODO:rdb的方法的方法
+// TODO:rdb的方法的方法？？？？
 
 func (c *redisRepoImpl) SetUserToken(ctx context.Context, userId uint64, token string, expiration int) error {
 	tokenKey := fmt.Sprintf("user_%d_token", userId)
@@ -44,10 +46,10 @@ func (c *redisRepoImpl) DelUserToken(ctx context.Context, userId uint64) error {
 
 func (c *redisRepoImpl) GetNextPrivateMessageSeq(ctx context.Context, user1 uint64, user2 uint64) (uint64, error) {
 	if user1 < user2 {
-		user1, user2 = user2, user1
+		user1, user2 = user2, user1 // TODO:go中的赋值号
 	}
 
-	seqKey := fmt.Sprintf("user_%d_%d_seq", user1, user2)
+	seqKey := fmt.Sprintf("private_%d_%d_seq", user1, user2)
 	return c.rdb.Incr(ctx, seqKey).Uint64()
 }
 

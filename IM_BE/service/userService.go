@@ -5,7 +5,6 @@ import (
 	"IM_BE/repository"
 	"IM_BE/utils"
 	"context"
-	"github.com/spf13/viper"
 	"go.uber.org/zap"
 )
 
@@ -18,7 +17,7 @@ func NewUserService(repo repository.UserRepo, redisRepo repository.RedisRepo) *U
 	return &UserService{repo: repo, redisRepo: redisRepo}
 }
 
-func (u *UserService) Login(ctx context.Context, username string, password string) (string, error) {
+func (u *UserService) Login(ctx context.Context, username string, password string, expiration int) (string, error) {
 	id, err := u.repo.AuthUser(ctx, username, password)
 	if err != nil {
 		return "", nil
@@ -29,8 +28,6 @@ func (u *UserService) Login(ctx context.Context, username string, password strin
 		utils.GetLogger().Error("获取 token 失败", zap.Error(err))
 		return "", nil
 	}
-
-	expiration := viper.GetInt("token.expiration")
 
 	if err := u.redisRepo.SetUserToken(ctx, id, token, expiration); err != nil {
 		utils.GetLogger().Error("redis 获取 token 失败", zap.Error(err))

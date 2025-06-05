@@ -6,23 +6,21 @@ import (
 	"IM_BE/utils"
 	"context"
 	"fmt"
-	"go.uber.org/zap"
-	"strings"
-
 	"github.com/gin-gonic/gin"
+	"github.com/spf13/viper"
+	"go.uber.org/zap"
 )
 
 func JWTAuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		authHeader := c.GetHeader("Authorization")
-		if authHeader == "" || !strings.HasPrefix(authHeader, "Bearer ") {
-			Result.Error(c, "Authorization header missing or invalid")
-			// c.Abort() 只是可以使得 index 超出范围，还需要配合 return 退出当前函数
+		name := viper.GetString("cookie.name")
+
+		token, err := c.Cookie(name)
+		if err != nil {
+			Result.Error(c, "获取 cookie 失败")
 			c.Abort()
 			return
 		}
-
-		token := strings.TrimPrefix(authHeader, "Bearer ")
 
 		claims, err := utils.ParseJWT(token)
 		if err != nil {

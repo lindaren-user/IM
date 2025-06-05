@@ -30,3 +30,10 @@ alioss:
   access_key_secret: ${ALIYUN_ACCESS_KEY_SECRET}
   bucket_name: sky-take-out-lindaren
 
+cookie:
+  name: im
+  path: /
+  domain: 
+  secure: false
+  httpOnly: false
+

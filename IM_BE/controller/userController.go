@@ -6,6 +6,7 @@ import (
 	"IM_BE/service"
 	"IM_BE/utils"
 	"github.com/gin-gonic/gin"
+	"github.com/spf13/viper"
 	"go.uber.org/zap"
 	"time"
 )
@@ -28,14 +29,25 @@ func (u *UserController) Login(c *gin.Context) {
 		return
 	}
 
+	expiration := viper.GetInt("token.expiration")
+
 	ctx := c.Request.Context()
-	token, err := u.service.Login(ctx, user.Username, user.Password)
+	token, err := u.service.Login(ctx, user.Username, user.Password, expiration)
 	if err != nil {
 		Result.Error(c, "登录失败")
 		return
 	}
 
-	Result.Success(c, token)
+	name := viper.GetString("cookie.name")
+	path := viper.GetString("cookie.path")
+	domain := viper.GetString("cookie.domain")
+	secure := viper.GetBool("cookie.secure")
+	httpOnly := viper.GetBool("cookie.httpOnly")
+
+	// cookie 的 maxage 单位是 s
+	c.SetCookie(name, token, expiration*3600, path, domain, secure, httpOnly)
+
+	Result.Success(c, nil)
 }
 
 func (u *UserController) Logout(c *gin.Context) {
