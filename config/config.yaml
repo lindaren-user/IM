@@ -1,0 +1,39 @@
+server:
+  host: localhost
+  port: 8080
+
+mysql:
+  host: localhost
+  port: 3306
+  user: root
+  password: 123456
+  dbname: im
+
+token:
+  key: im_secret_key
+  expiration: 2
+
+redis:
+  host: localhost
+  port: 6379
+  password:
+  DB: 0
+  poolSize: 30
+  minIdleConn: 30
+
+# 这种密钥，github 不会允许这次合并，可以把密钥存在 .env 文件
+
+alioss:
+  endpoint: oss-cn-guangzhou.aliyuncs.com
+  region: cn-guangzhou
+  access_key_id: ${ALIYUN_ACCESS_KEY_ID}
+  access_key_secret: ${ALIYUN_ACCESS_KEY_SECRET}
+  bucket_name: sky-take-out-lindaren
+
+cookie:
+  name: im
+  path: /
+  domain: 
+  secure: false
+  httpOnly: false
+
