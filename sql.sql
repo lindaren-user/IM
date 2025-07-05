@@ -54,17 +54,16 @@ CREATE TABLE `groups` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='群聊';
 
 CREATE TABLE `friendships` (
-       `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY COMMENT '主键，自增',
-       `user_id` BIGINT UNSIGNED NOT NULL COMMENT '用户ID',
-       `friend_id` BIGINT UNSIGNED NOT NULL COMMENT '好友用户ID',
-       `remark` VARCHAR(100) DEFAULT NULL COMMENT '好友备注',
-       `status` ENUM('pending', 'accepted', 'blocked') NOT NULL DEFAULT 'accepted' COMMENT '状态：pending=待确认，accepted=已成为好友，blocked=拉黑',
-       `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '加好友时间',
-       FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE,
-       FOREIGN KEY (`friend_id`) REFERENCES `users`(`id`) ON DELETE CASCADE,
-       UNIQUE KEY `uniq_friend_pair` (`user_id`, `friend_id`),
-       INDEX (`friend_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='好友关系表';
+       `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY COMMENT '主键',
+       `user1_id` BIGINT UNSIGNED NOT NULL COMMENT '较小的用户ID',
+       `user2_id` BIGINT UNSIGNED NOT NULL COMMENT '较大的用户ID',
+       `status` ENUM('pending', 'accepted', 'blocked') NOT NULL DEFAULT 'accepted' COMMENT '好友状态',
+       `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '成为好友的时间',
+       UNIQUE KEY `uniq_pair` (`user1_id`, `user2_id`),
+       FOREIGN KEY (`user1_id`) REFERENCES `users`(`id`) ON DELETE CASCADE,
+       FOREIGN KEY (`user2_id`) REFERENCES `users`(`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='好友关系';
+
 
 CREATE TABLE `group_members` (
      `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY COMMENT '主键',

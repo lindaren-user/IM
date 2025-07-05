@@ -8,7 +8,7 @@ import (
 )
 
 type MessageRepo interface {
-	SavePrivateMessage(*model.PrivateMessage) error
+	SavePrivateMessage(*model.PrivateMessage) error // TODO:参数不要轻易使用指针
 	SaveGroupMessage(*model.GroupMessage) error
 	GetHistoryPrivateMessages(senderId uint64, toId uint64) ([]*model.PrivateMessage, error)
 	GetHistoryGroupMessages(groupId uint64) ([]*model.GroupMessage, error)

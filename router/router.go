@@ -30,6 +30,7 @@ func Init(router *gin.Engine) {
 	// TODO:中间件是否一定要 c.Next()
 	authRouter := router.Group("/user", middleware.JWTAuthMiddleware())
 	{
+		authRouter.GET("/getAllFriends", userController.GetAllFriends)
 		authRouter.GET("/search", userController.Search)
 		authRouter.GET("/logout", userController.Logout)
 	}

@@ -8,7 +8,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/viper"
 	"go.uber.org/zap"
-	"time"
 )
 
 type UserController struct {
@@ -76,8 +75,6 @@ func (u *UserController) Logout(c *gin.Context) {
 
 // TODO:可以实现一个取消搜索的功能？？？？？？？？？？/
 func (u *UserController) Search(c *gin.Context) {
-	time.Sleep(3 * time.Second)
-
 	getType := c.Query("type")
 	keyword := c.Query("keyword")
 
@@ -100,7 +97,29 @@ func (u *UserController) Search(c *gin.Context) {
 		return
 	}
 
-	time.Sleep(time.Duration(5) * time.Second)
-
 	Result.Success(c, users)
+}
+
+func (u *UserController) GetAllFriends(c *gin.Context) {
+	userId, exist := c.Get("user_id")
+	if !exist {
+		utils.GetLogger().Error("user_id 不存在")
+		Result.Error(c, "获取失败")
+		return
+	}
+
+	id, ok := userId.(uint64)
+	if !ok {
+		utils.GetLogger().Error("断言失败")
+		Result.Error(c, "类型断言失败")
+		return
+	}
+
+	friends, err := u.service.GetAllFriends(c.Request.Context(), id)
+	if err != nil {
+		Result.Error(c, "获取好友列表失败")
+		return
+	}
+
+	Result.Success(c, friends)
 }

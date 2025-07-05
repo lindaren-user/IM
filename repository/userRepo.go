@@ -14,6 +14,10 @@ type UserRepo interface {
 	GetUserByUsername(ctx context.Context, keyword string) ([]*dto.UserDTO, error)
 
 	GetUserByNickname(ctx context.Context, keyword string) ([]*dto.UserDTO, error)
+
+	GetAllFriends(ctx context.Context, userId uint64) ([]uint64, error)
+
+	GetFriendInfo(ctx context.Context, friendId uint64) (*dto.FriendDTO, error)
 }
 
 func NewUserRepo(db *sql.DB) UserRepo {
@@ -89,4 +93,50 @@ func (u *userRepoImpl) GetUserByNickname(ctx context.Context, keyword string) ([
 	}
 
 	return users, nil
+}
+
+// TODO:case when then ？？？
+func (u *userRepoImpl) GetAllFriends(ctx context.Context, userId uint64) ([]uint64, error) {
+	query := `select case when user1_id = ? then user2_id else user1_id end as friend_id from friendships where (user1_id = ? or user2_id = ?) and status = 'accepted'`
+
+	rows, err := u.db.QueryContext(ctx, query, userId, userId, userId)
+	if err != nil {
+		utils.GetLogger().Error("数据库查询失败", zap.Error(err))
+		return nil, err
+	}
+	defer rows.Close()
+
+	var friendIds []uint64
+
+	for rows.Next() {
+		var friendId uint64
+		if err := rows.Scan(&friendId); err != nil {
+			utils.GetLogger().Error("读取 rows 失败", zap.Error(err))
+			return nil, err
+		}
+
+		friendIds = append(friendIds, friendId)
+	}
+	if err := rows.Err(); err != nil {
+		utils.GetLogger().Error("遍历 rows 失败", zap.Error(err))
+		return nil, err
+	}
+
+	return friendIds, nil
+}
+
+func (u *userRepoImpl) GetFriendInfo(ctx context.Context, friendId uint64) (*dto.FriendDTO, error) {
+	query := `select id, nickname, avatar from users where id = ?`
+
+	var friend dto.FriendDTO
+	var avatar sql.NullString
+	if err := u.db.QueryRowContext(ctx, query, friendId).Scan(&friend.Id, &friend.Nickname, &avatar); err != nil {
+		utils.GetLogger().Error("数据库查询出错", zap.Error(err))
+		return nil, err
+	}
+
+	// 注意空字段处理
+	friend.Avatar = avatar.String
+
+	return &friend, nil
 }

@@ -12,3 +12,9 @@ type UserDTO struct {
 	Username string `json:"username"`
 	Nickname string `json:"nickname"`
 }
+
+type FriendDTO struct {
+	Id       uint64 `json:"id"`
+	Nickname string `json:"nickname"`
+	Avatar   string `json:"avatar"`
+}

@@ -83,7 +83,7 @@ func (r *RawMessage) ToMessageRespDto() (*MessageRespDto, error) {
 type MessageRespDto struct {
 	Id          uint64            `json:"id"`
 	SenderId    uint64            `json:"sender_id,omitempty"`
-	ToId        uint64            `json:"to_id,omitempty"`
+	ToId        uint64            `json:"to_id,omitempty"` // TODO：多余的部分，等待删除
 	ChatType    ChatType          `json:"chat_type"`
 	ContentType model.MessageType `json:"content_type"` // TODO:不必担心前端是string而导致json解析失败
 	CreatedAt   time.Time         `json:"created_at"`

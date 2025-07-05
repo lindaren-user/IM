@@ -29,9 +29,9 @@ func (w *WsRepoImpl) GetUserFriendShips(ctx context.Context) ([]uint64, error) {
 		return nil, errors.New("类型断言失败")
 	}
 
-	query := `select friend_id from friendships where user_id = ?`
+	query := `select case when user1_id = ? then user2_id else user1_id end as friend_id from friendships where (user1_id = ? or user2_id = ?) and status = 'accepted'`
 
-	rows, err := w.db.QueryContext(ctx, query, userId)
+	rows, err := w.db.QueryContext(ctx, query, userId, userId, userId)
 	if err != nil {
 		utils.GetLogger().Error("数据库查询失败", zap.Error(err))
 		return nil, err

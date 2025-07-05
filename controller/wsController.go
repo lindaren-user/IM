@@ -2,7 +2,9 @@ package controller
 
 import (
 	"IM_BE/Result"
+	"IM_BE/db/mysql"
 	"IM_BE/db/redis"
+	"IM_BE/repository"
 	"IM_BE/service"
 	"IM_BE/utils"
 	"IM_BE/ws"
@@ -61,7 +63,12 @@ func (w *WsController) Run(c *gin.Context) {
 		return
 	}
 
-	client := ws.NewClient(id, conn)
+	messageService := service.NewMessageService(
+		repository.NewMessageRepo(mysql.Get()),
+		repository.NewRedisRepo(redis.Get()),
+	)
+
+	client := ws.NewClient(id, conn, messageService.SaveMessage)
 
 	ctx := c.Request.Context()
 	ctx = context.WithValue(ctx, "user_id", id)

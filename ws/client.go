@@ -14,20 +14,22 @@ import (
 
 // Client 基础通信结构
 type Client struct {
-	id                uint64
-	conn              *websocket.Conn
-	messageBox        chan *dto.MessageRespDto // 信箱
-	Manager           *WsManager               // 有点像 gin 的 RouterGroup 的属性 Engine，指向所属的 engine
-	streamSubscribers []*mq.StreamSubscriber
+	id                 uint64
+	conn               *websocket.Conn
+	messageBox         chan *dto.MessageRespDto // 信箱
+	Manager            *WsManager               // 有点像 gin 的 RouterGroup 的属性 Engine，指向所属的 engine
+	streamSubscribers  []*mq.StreamSubscriber
+	saveMessageHandler func(ctx context.Context, respDto *dto.MessageRespDto) error
 }
 
-func NewClient(id uint64, conn *websocket.Conn) *Client {
+func NewClient(id uint64, conn *websocket.Conn, handler func(ctx context.Context, respDto *dto.MessageRespDto) error) *Client {
 	return &Client{
-		id:                id,
-		conn:              conn,
-		messageBox:        make(chan *dto.MessageRespDto),
-		Manager:           GetWsManager(),
-		streamSubscribers: []*mq.StreamSubscriber{},
+		id:                 id,
+		conn:               conn,
+		messageBox:         make(chan *dto.MessageRespDto),
+		Manager:            GetWsManager(),
+		streamSubscribers:  []*mq.StreamSubscriber{},
+		saveMessageHandler: handler,
 	}
 }
 
@@ -49,7 +51,6 @@ func (c *Client) WritePump() {
 	utils.GetLogger().Debug("开启 WritePump 协程")
 
 	for message := range c.messageBox {
-		message.SenderId = c.id
 		message.ToId = 0
 
 		messageBytes, err := json.Marshal(message)
@@ -62,7 +63,7 @@ func (c *Client) WritePump() {
 			utils.GetLogger().Error(fmt.Sprintf("消息发送给 %d 失败", c.id), zap.Error(err))
 			return
 		}
-		utils.GetLogger().Debug("发送消息成功", zap.String("messageBox", string(messageBytes)))
+		utils.GetLogger().Debug("发送消息成功")
 	}
 }
 
@@ -97,8 +98,7 @@ func (c *Client) ReadPump() {
 			if err != nil {
 				break
 			}
-
-			message.SenderId = c.id
+			// message.SenderId = c.id
 		}
 		// ...一系列的消息处理
 
@@ -117,6 +117,11 @@ func (c *Client) ReadPump() {
 				break
 			}
 		}
+
+		if err := c.saveMessageHandler(context.Background(), message); err != nil {
+			break
+		}
+		utils.GetLogger().Debug("持久化消息")
 
 		// 消息放进消息队列
 		if _, err := streamBroker.Publish(context.Background(), stream, message); stream != "" && err != nil {

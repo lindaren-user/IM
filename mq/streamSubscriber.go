@@ -99,7 +99,8 @@ func (s *StreamSubscriber) consume() {
 				utils.GetLogger().Error("消息类型转换失败", zap.Error(err))
 				break
 			}
-			// 执行回调（将消息放进对应的信箱，并持久化）
+
+			// 执行回调（将消息放进对应的信箱）
 			if s.onMessage != nil && message != nil {
 				if err := s.onMessage(message); err != nil {
 					utils.GetLogger().Error("消息回调执行失败")

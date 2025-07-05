@@ -20,6 +20,7 @@ func Success(c *gin.Context, data interface{}) {
 	})
 }
 
+// TODO:axios 只能识别非 200
 func Error(c *gin.Context, msg string) {
 	c.JSON(http.StatusOK, &Result{
 		Code:    1,

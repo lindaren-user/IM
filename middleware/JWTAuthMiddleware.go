@@ -31,7 +31,7 @@ func JWTAuthMiddleware() gin.HandlerFunc {
 
 		id := claims.UserID
 
-		tokenKey := fmt.Sprintf("user_token_%d", id)
+		tokenKey := fmt.Sprintf("user_%d_token", id)
 		redisToken, err := redis.Get().Get(context.Background(), tokenKey).Result()
 		if err != nil || token != redisToken {
 			utils.GetLogger().Error("会话失效", zap.Error(err))
@@ -40,7 +40,7 @@ func JWTAuthMiddleware() gin.HandlerFunc {
 			return
 		}
 
-		// 把解析到的用户 ID 存入 context 中
+		// 把解析到的用户 ID 存入 gin 的上下文中（不同于c.Request.Context()）
 		c.Set("user_id", id)
 
 		// c.Next() // 多此一举

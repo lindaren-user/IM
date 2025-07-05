@@ -59,3 +59,22 @@ func (u *UserService) Search(ctx context.Context, getType string, keyword string
 
 	return users, nil
 }
+
+func (u *UserService) GetAllFriends(ctx context.Context, id uint64) ([]*dto.FriendDTO, error) {
+	friendIds, err := u.repo.GetAllFriends(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+
+	var friends []*dto.FriendDTO
+	for _, friendId := range friendIds {
+		friend, err := u.repo.GetFriendInfo(ctx, friendId)
+		if err != nil {
+			return nil, err
+		}
+
+		friends = append(friends, friend)
+	}
+
+	return friends, nil
+}
