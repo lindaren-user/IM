@@ -40,14 +40,18 @@ func (w *WsService) AddClient(ctx context.Context, client *ws.Client) error {
 	)
 	// 辅助函数：创建并启动 StreamSubscriber
 	startSubscriber := func(stream, group, consumer string) error {
-		subscriber := mq.NewStreamSubscriber(redis.Get(), stream, group, consumer, func(msg *dto.MessageRespDto) {
+		subscriber := mq.NewStreamSubscriber(redis.Get(), stream, group, consumer, func(msg *dto.MessageRespDto) error {
 			// 持久化消息
-			_ = messageService.SaveMessage(context.Background(), msg)
+			if err := messageService.SaveMessage(context.Background(), msg); err != nil {
+				return err
+			}
 			utils.GetLogger().Debug("持久化消息")
 
 			// 将消息放进信箱
 			client.GetMessage(msg)
 			utils.GetLogger().Debug("将消息放进信箱")
+
+			return nil
 		})
 
 		if err := subscriber.InitGroup(); err != nil && err.Error() != "BUSYGROUP Consumer Group name already exists" {

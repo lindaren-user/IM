@@ -37,6 +37,7 @@ type MessageReqDto struct {
 type RawMessage struct {
 	ID          string `json:"id"`
 	SenderID    string `json:"sender_id"`
+	ToID        string `json:"to_id"`
 	ChatType    string `json:"chat_type"`
 	ContentType string `json:"content_type"`
 	CreatedAt   string `json:"created_at"`
@@ -53,6 +54,10 @@ func (r *RawMessage) ToMessageRespDto() (*MessageRespDto, error) {
 	if err != nil {
 		return nil, err
 	}
+	toID, err := strconv.ParseUint(r.ToID, 10, 64)
+	if err != nil {
+		return nil, err
+	}
 	createdAt, err := time.Parse(time.RFC3339, r.CreatedAt)
 	if err != nil {
 		createdAt = time.Now()
@@ -66,6 +71,7 @@ func (r *RawMessage) ToMessageRespDto() (*MessageRespDto, error) {
 	return &MessageRespDto{
 		Id:          id,
 		SenderId:    senderID,
+		ToId:        toID,
 		ChatType:    ChatType(r.ChatType),
 		ContentType: model.MessageType(r.ContentType),
 		CreatedAt:   createdAt,

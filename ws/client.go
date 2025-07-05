@@ -52,8 +52,6 @@ func (c *Client) WritePump() {
 		message.SenderId = c.id
 		message.ToId = 0
 
-		utils.GetLogger().Debug("发送消息成功111111")
-
 		messageBytes, err := json.Marshal(message)
 		if err != nil {
 			utils.GetLogger().Error("解析消息体失败", zap.Error(err))
@@ -125,5 +123,6 @@ func (c *Client) ReadPump() {
 			utils.GetLogger().Error("消息放进 mq 失败", zap.Error(err))
 			break
 		}
+		utils.GetLogger().Debug("消息放进 mq")
 	}
 }
